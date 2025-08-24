@@ -83,7 +83,7 @@ public abstract class GUIObject {
 		this.x=x;
 	}
 	
-	/** @return current Y position */
+	/** Sets the Y position in pixels. */
 	public void setY(int y) {
 		this.y=y;
 	}

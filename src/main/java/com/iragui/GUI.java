@@ -88,7 +88,7 @@ public class GUI {
 	public void begin() {
 		this.render();
 		window.initSound();
-		this.horizontalMouse = new WrappedBufferedImage("icanjustputwhateverhere", 
+		this.horizontalMouse = new WrappedBufferedImage("horizontalMouseWBI", 
 				0, 
 				this, 
 				23, 
@@ -96,7 +96,7 @@ public class GUI {
 				true, 
 				true, 
 				FileSystem.getImage("data/newResizeHorizontal.png"));
-		this.verticalMouse = new WrappedBufferedImage("ganggang", 
+		this.verticalMouse = new WrappedBufferedImage("verticalMouseWBI", 
 				0, 
 				this, 
 				11, 
@@ -105,7 +105,7 @@ public class GUI {
 				true, 
 				FileSystem.getImage("data/newResizeVertical.png"));
 		
-		this.diagonalLeftMouse = new WrappedBufferedImage("iamgod", 
+		this.diagonalLeftMouse = new WrappedBufferedImage("diagonalLeftMouseWBI", 
 				0, 
 				this, 
 				17, 
@@ -114,7 +114,7 @@ public class GUI {
 				true, 
 				FileSystem.getImage("data/newResizeDiagRight.png"));
 		
-		this.diagonalRightMouse = new WrappedBufferedImage("iamgod", 
+		this.diagonalRightMouse = new WrappedBufferedImage("diagonalRightMouseWBI", 
 				0, 
 				this, 
 				17, 

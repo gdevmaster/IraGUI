@@ -6,13 +6,36 @@ import java.util.TreeMap;
 
 import com.iragui.GUI;
 
+/**
+ * A {@code TextBoxObject} represents a multi-line text container within the GUI.
+ * <p>
+ * Each line of text is internally represented as a {@link TextObject} and stored in a {@link TreeMap}.
+ * The text box manages positioning, spacing between lines, and propagates updates 
+ * (such as position, limits, and layer changes) to its child {@code TextObject}s.
+ * </p>
+ */
 public class TextBoxObject extends GUIObject {
 	
-	
+	 /** Holds the lines of text, ordered by index. */
 	protected TreeMap<Integer,TextObject> lines;
 	
+	  /** Spacing (in pixels) between lines of text. */
 	private int lineSpacing=0;
 
+	/**
+     * Constructs a new {@code TextBoxObject}.
+     *
+     * @param name          the unique object name
+     * @param layer         the rendering layer
+     * @param gui           the parent GUI
+     * @param x             the x-position
+     * @param y             the y-position
+     * @param sizeX         the width of the text box
+     * @param sizeY         the height of the text box
+     * @param nearestFilter whether to use nearest-neighbor filtering
+     * @param rgba          whether to use RGBA textures
+     * @param lineSpacing   vertical spacing between lines
+     */
 	public TextBoxObject(String name, int layer, GUI gui, int x, int y, int sizeX, int sizeY, boolean nearestFilter,
 			boolean rgba, int lineSpacing) {
 		super(name, layer, gui, x, y, sizeX, sizeY, nearestFilter, rgba, false, false, false);
@@ -23,6 +46,17 @@ public class TextBoxObject extends GUIObject {
 		this.lineSpacing=lineSpacing;
 	}
 	
+	 /**
+     * Appends a new line of text to this text box.
+     *
+     * @param text          the string content
+     * @param font          the font used to render the text
+     * @param color         the text color
+     * @param bkgColor      the background color
+     * @param rgba          whether the text uses RGBA
+     * @param nearestFilter whether to use nearest-neighbor filtering
+     * @param antiAliasing  whether to apply anti-aliasing
+     */
 	public void appendLine(String text, 
 						   Font font, 
 						   Color color, 
@@ -48,14 +82,21 @@ public class TextBoxObject extends GUIObject {
 		lines.put(line,tO);
 	}
 	
+	/** @return the vertical spacing between lines. */
 	public int getLineSpacing() {
 		return this.lineSpacing;
 	}
 	
+	 /**
+     * Sets the vertical spacing between lines.
+     *
+     * @param space the line spacing in pixels
+     */
 	public void setLineSpacing(int space) {
 		this.lineSpacing=space;
 	}
 	
+	/** {@inheritDoc} */
 	@Override
 	public void setLayer(int layer) {
 		super.setLayer(layer);
@@ -64,6 +105,7 @@ public class TextBoxObject extends GUIObject {
 		}
 	}
 	
+	/** {@inheritDoc} */
 	@Override
 	public void destroyObject() {
 		for(Integer line : lines.keySet()) {
@@ -72,6 +114,7 @@ public class TextBoxObject extends GUIObject {
 		super.destroyObject();
 	}
 	
+	/** {@inheritDoc} */
 	@Override
 	public void setX(int x) {
 		this.x=x+2;
@@ -80,6 +123,7 @@ public class TextBoxObject extends GUIObject {
 		}
 	}
 	
+	/** {@inheritDoc} */
 	@Override
 	public void setY(int y) {
 		this.y=y;
@@ -155,31 +199,17 @@ public class TextBoxObject extends GUIObject {
 	}
 
 	@Override
-	public void update(boolean showFrame) {
-		
-	}
-
+	public void update(boolean showFrame) {	}
 	@Override
-	public void sendKey(int key, int action) {
-		
-	}
-
+	public void sendKey(int key, int action) {}
 	@Override
-	public void sendMousePos(long window, double xPos, double yPos) {
-		
-	}
-
+	public void sendMousePos(long window, double xPos, double yPos) {}
 	@Override
-	public void sendMouseButton(long window, int button, int action, int mods) {
-		
-		
-	}
-
+	public void sendMouseButton(long window, int button, int action, int mods) {}
 	@Override
-	public void sendMouseScroll(long window, double xOffset, double yOffset) {
-		
-	}
+	public void sendMouseScroll(long window, double xOffset, double yOffset) {}
 
+	/** @return all text lines as a {@link TreeMap}. */
 	public TreeMap<Integer, TextObject> getLines() {
 		return this.lines;
 	}

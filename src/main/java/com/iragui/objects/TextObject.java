@@ -12,6 +12,23 @@ import org.lwjgl.opengl.GL30;
 
 import com.iragui.GUI;
 
+/**
+ * A GUI object that renders text as a texture and displays it in OpenGL.
+ * <p>
+ * This class creates a {@link BufferedImage}, rasterizes the text with a given
+ * {@link Font}, {@link Color}, and background, and uploads it as an OpenGL
+ * texture. The text can be updated dynamically, and it will automatically
+ * regenerate the texture when changed.
+ * </p>
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *   <li>Support for anti-aliased text rendering</li>
+ *   <li>Support for both RGB and RGBA textures</li>
+ *   <li>Automatic recalculation of text width when the string changes</li>
+ *   <li>Ability to revert to the original text</li>
+ * </ul>
+ */
 public class TextObject extends GUIObject {
 	
 	private String text = "";
@@ -24,6 +41,22 @@ public class TextObject extends GUIObject {
 	private BufferedImage image;
 	private FontMetrics fontMetrics;
 	
+	 /**
+     * Constructs a new {@code TextObject}.
+     *
+     * @param name          the name of this object
+     * @param layer         the rendering layer
+     * @param gui           the parent GUI
+     * @param x             the X position
+     * @param y             the Y position
+     * @param nearestFilter whether to use nearest-neighbor filtering
+     * @param rgba          whether to render as RGBA (true) or RGB (false)
+     * @param text          the text string to display
+     * @param font          the font used for rendering
+     * @param color         the foreground color of the text
+     * @param bkgColor      the background color
+     * @param antiAliasing  whether to enable text anti-aliasing
+     */
 	public TextObject(String name, 
 			int layer, 
 			GUI gui, 
@@ -51,6 +84,9 @@ public class TextObject extends GUIObject {
 		createTexture();
 	}
 	
+	/**
+     * Initializes the {@link FontMetrics} for measuring text dimensions.
+     */
 	private void initializeFontMetrics() {
 		image = new BufferedImage(1,1,BufferedImage.TYPE_INT_ARGB);
 		g2d = image.createGraphics();
@@ -58,6 +94,11 @@ public class TextObject extends GUIObject {
 		fontMetrics = g2d.getFontMetrics();
 	}
 	
+	/**
+     * Updates the text content and regenerates the texture if changed.
+     *
+     * @param text the new text string
+     */
 	public void setText(String text) {
 		
 		if(text.contentEquals(this.text)) {
@@ -69,20 +110,39 @@ public class TextObject extends GUIObject {
 		createTexture();
 	}
 	
+	/**
+     * @return the width of the current text in pixels
+     */
 	public int getTextWidth() {
 		return fontMetrics.stringWidth(text);
 	}
 	
+
+    /**
+     * Returns the width of a specific string in pixels.
+     *
+     * @param text the string to measure
+     * @return the pixel width of the given string
+     */
 	public int getTextWidth(String text) {
 		return fontMetrics.stringWidth(text);
 	}
 	
+	 /**
+     * Sets the font used for rendering text and regenerates the texture.
+     *
+     * @param font the new font
+     */
 	public void setFont(Font font) {
 		this.font=font;
 		this.sizeY=(int) (font.getSize()*(1.5f));
 		createTexture();
 	}
 	
+	/**
+     * Creates or updates the texture with the current text, font, and colors.
+     * Handles both RGB and RGBA modes.
+     */
 	public void createTexture() {
 		
 		if(sizeX<=0) {
@@ -180,19 +240,26 @@ public class TextObject extends GUIObject {
 		
 	}
 
+	 /** @return the current text string */
 	public String getText() {
 		return this.text;
 	}
 	
+	/** @return true if the text matches the original text */
 	public boolean isOriginalText() {
 		return this.originalText.contentEquals(this.text);
 	}
 	
+    /** @return the pixel width of the original text */
 	public int getOriginalTextWidth() {
 		return getTextWidth(this.originalText);
 	}
 
+	
 	private String originalText;
+	
+    /** Reverts the text back to its original value. */
+
 	public void revertText() {
 		if(this.text.contentEquals(originalText)) {
 			return;
@@ -200,6 +267,11 @@ public class TextObject extends GUIObject {
 		this.setText(originalText);
 	}
 
+	 /**
+     * Sets the text and overrides the original text value as well.
+     *
+     * @param string the new text string
+     */
 	public void setTextOverride(String string) {
 		if(this.text.contentEquals(string)) {
 			return;
@@ -207,7 +279,12 @@ public class TextObject extends GUIObject {
 		this.setText(string);
 		this.originalText=string;
 	}
-
+	
+	/**
+     * Sets the text color and regenerates the texture.
+     *
+     * @param color the new color
+     */
 	public void setColor(Color color) {
 		if(this.color.getRGB()==color.getRGB()) {
 			return;
@@ -216,6 +293,9 @@ public class TextObject extends GUIObject {
 		createTexture();
 	}
 
+	/**
+     * @return the current font used for rendering
+     */
 	public Font getFont() {
 		return this.font;
 	}

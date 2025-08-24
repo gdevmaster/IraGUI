@@ -7,8 +7,29 @@ import org.lwjgl.BufferUtils;
 
 import com.iragui.GUI;
 
+/**
+ * A GUIObject that wraps a {@link BufferedImage} for use with IraGUI.
+ * <p>
+ * This class converts Java {@link BufferedImage} pixel data into GPU-friendly
+ * {@link ByteBuffer} objects. It supports both RGB and RGBA formats, and can
+ * optionally store directional variants of the same image for sprite animations
+ * or rotated rendering.
+ * </p>
+ */
 public class WrappedBufferedImage extends GUIObject {
 
+	/**
+     * Creates a new wrapped image without directional variants.
+     *
+     * @param name          the name of the object
+     * @param layer         the rendering layer
+     * @param gui           the parent {@link GUI}
+     * @param x             the x position of this object
+     * @param y             the y position of this object
+     * @param nearestFilter whether to use nearest-neighbor filtering
+     * @param rgba          true if the image should be stored with an alpha channel (RGBA)
+     * @param image         the {@link BufferedImage} to wrap
+     */
 	public WrappedBufferedImage(String name, 
 			int layer, 
 			GUI gui, 
@@ -52,13 +73,27 @@ public class WrappedBufferedImage extends GUIObject {
 		
 		}
 	}
-	
+	 /**
+     * Alternate pixel buffers for each direction (used if {@link #directional} is true).
+     */
 	private ByteBuffer pixelBufferDirection0;
 	private ByteBuffer pixelBufferDirection1;
 	private ByteBuffer pixelBufferDirection2;
 	private ByteBuffer pixelBufferDirection3;
+	
+	/**
+     * Whether this wrapped image supports directional variants.
+     */
 	private boolean directional = false;
 	
+	/**
+     * Changes the active pixel buffer to match the given direction.
+     * <p>
+     * Only works if {@link #directional} is true. Directions are:
+     * </p>
+     *
+     * @param direction the direction index (0–3)
+     */
 	public void changeDirection(int direction) {
 		if(directional) {
 			switch(direction) {
@@ -78,6 +113,19 @@ public class WrappedBufferedImage extends GUIObject {
 		}
 	}
 	
+	/**
+     * Creates a new wrapped image with directional variants.
+     *
+     * @param name          the name of the object
+     * @param layer         the rendering layer
+     * @param gui           the parent {@link GUI}
+     * @param x             the x position of this object
+     * @param y             the y position of this object
+     * @param nearestFilter whether to use nearest-neighbor filtering
+     * @param rgba          true if the image should be stored with an alpha channel (RGBA)
+     * @param image         the {@link BufferedImage} to wrap
+     * @param directional   whether to generate directional pixel buffers
+     */
 	public WrappedBufferedImage(String name, 
 			int layer, 
 			GUI gui, 
@@ -202,6 +250,11 @@ public class WrappedBufferedImage extends GUIObject {
 		}
 	}
 	
+	 /**
+     * Returns the main pixel buffer for this image.
+     *
+     * @return the base {@link ByteBuffer} containing pixel data
+     */
 	public ByteBuffer getPixelBuffer() {
 		return this.pixelBuffer;
 	}
