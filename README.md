@@ -200,3 +200,4 @@ public class GUIApp implements Runnable {
     <img src="https://img.shields.io/badge/Javadocs-Online-blue?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Javadocs">
   </a>
 </p>
+
