@@ -29,8 +29,7 @@ To create a GUI window and start rendering GUI objects:
 <summary>Show Code</summary>
 
 ```java
-import com.iraengine.gui.GUI;
-import com.iraengine.gui.GUIObject;
+import com.iragui.GUI;
 
 public class GUIApp implements Runnable {
 
@@ -96,8 +95,7 @@ Recommended setup for games:
 <summary>Show Code</summary>
 
 ```java
-import com.iraengine.gui.GUI;
-import com.iraengine.gui.GUIObject;
+import com.iragui.GUI;
 
 public class GUIApp implements Runnable {
 
