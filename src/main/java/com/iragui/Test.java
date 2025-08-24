@@ -7,23 +7,21 @@ import com.iragui.objects.SubWindowObject;
 import com.iragui.objects.TextBoxObject;
 import com.iragui.objects.TextObject;
 
-public class Main implements Runnable {
+public class Test implements Runnable {
 	
 	private GUI gui;
 	private boolean running=false;
 	
 	public static void main(String[] args) {
-		Main main = new Main();
+		Test main = new Test();
 		Thread mainThread = new Thread(main);
 		mainThread.start();
 	}
 	
-	public Main() {
+	public Test() {
 		gui = new GUI("IraGUI",500, 500, 500, 500, true, true, false, true, false, false);
 		running=true;
 	}
-	
-	//WrappedBufferedImage o2;
 	
 	private SubWindowObject sW,sW2,sW3,sW4,sW5;
 	
@@ -33,7 +31,6 @@ public class Main implements Runnable {
 	public static final Color DARKER_GRAY = new Color(30,30,30,255);
 	
 	private void init() {
-		//WrappedBufferedImage o = new WrappedBufferedImage("missionStatement",0,gui,0,0,true,true,FileSystem.getImage("data/missionStatement.png"));
 		
 		sW = new SubWindowObject("window", 0, gui, 0, 0, 500, 500, true, false,DEEP_GRAY,Color.GRAY,true,true,Color.WHITE,"[Window]");
 		sW.setVisible();
@@ -42,7 +39,7 @@ public class Main implements Runnable {
 		sW.add(tBO,SubWindowObject.TOP_LEFT);
 		tBO.setVisible();
 		
-		tBO.appendLine("This line has been appended lmao I am fun",new Font("Consolas",Font.PLAIN,18),Color.WHITE,new Color(0,0,0,0),true,true,true);
+		tBO.appendLine("This line has been appended lol I am fun",new Font("Consolas",Font.PLAIN,18),Color.WHITE,new Color(0,0,0,0),true,true,true);
 		tBO.appendLine("This one also has been appended",new Font("Consolas",Font.PLAIN,18),Color.WHITE,new Color(0,0,0,0),true,true,true);
 		
 		//-----------------------------------------------------------------
@@ -63,7 +60,7 @@ public class Main implements Runnable {
 		sW3 = new SubWindowObject("window3", 4, gui, 0, 0, 300, 300, true, false,Color.BLACK,Color.GRAY,true,true,Color.WHITE,"[Window3]");
 		sW2.add(sW3,SubWindowObject.MOVABLE);
 		
-		TextObject tO = new TextObject("HBC", 100, gui, 0, 0, true, true, "HBC", new Font("Perpetua Titling MT",Font.PLAIN,200),new Color(150,0,0,255),Color.BLACK,true);
+		TextObject tO = new TextObject("GUI", 100, gui, 0, 0, true, true, "GUI", new Font("Perpetua Titling MT",Font.PLAIN,200),new Color(150,0,0,255),Color.BLACK,true);
 		
 		
 		sW4 = new SubWindowObject("window4", 0, gui, 0, 0, 250, 250, true, false,Color.BLACK,Color.GRAY,true,true,Color.WHITE,"[Window4]");
@@ -74,7 +71,7 @@ public class Main implements Runnable {
 		sW.add(sW5,SubWindowObject.MOVABLE);
 		
 		SubWindowObject lastWindow = sW5;
-		for(int i=5;i<=30;i++) {
+		for(int i=6;i<=10;i++) {
 			SubWindowObject sO = new SubWindowObject("yaiy"+i, 0, gui, 0, 0, 250, 250, true, false,Color.BLACK,Color.GRAY,true,true,Color.WHITE,""+i);
 			lastWindow.add(sO,SubWindowObject.MOVABLE);
 			lastWindow=sO;
@@ -85,7 +82,6 @@ public class Main implements Runnable {
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		gui.begin();
 		gui.setBackground(0.15f, 0.15f, 0.15f, 1f);
 		

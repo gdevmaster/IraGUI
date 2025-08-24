@@ -9,29 +9,19 @@ public class ScreenObject extends GUIObject{
 		super(name, layer, gui, x, y, sizeX, sizeY, nearestFilter, rgba);
 		this.setPreserveTextureIDOverride(preserveTextureIDOverride);
 	}
+	
+	@Override
+	public void update(boolean showFrame) {}
 
 	@Override
-	public void update(boolean showFrame) {
-		
-	}
+	public void sendKey(int key, int action) {}
 
 	@Override
-	public void sendKey(int key, int action) {
-		
-	}
+	public void sendMousePos(long window, double xPos, double yPos) {}
 
 	@Override
-	public void sendMousePos(long window, double xPos, double yPos) {
-		
-	}
+	public void sendMouseButton(long window, int button, int action, int mods) {}
 
 	@Override
-	public void sendMouseButton(long window, int button, int action, int mods) {
-		
-	}
-
-	@Override
-	public void sendMouseScroll(long window, double xOffset, double yOffset) {
-		
-	}
+	public void sendMouseScroll(long window, double xOffset, double yOffset) {}
 }

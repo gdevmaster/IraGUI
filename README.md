@@ -192,5 +192,3 @@ public class GUIApp implements Runnable {
 }
 ```
 </details>
-
-## ⚙️ More Documentation
