@@ -39,8 +39,6 @@ public abstract class AnimationObject extends GUIObject{
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setX(x);
 		}
-		//allowReTexture();
-		//this.gui.showNextFrame();
 	}
 	
 	@Override
@@ -49,8 +47,6 @@ public abstract class AnimationObject extends GUIObject{
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setY(y);
 		}
-		//allowReTexture();
-		//this.gui.showNextFrame();
 	}
 	
 	public int getFrame() {
@@ -71,9 +67,6 @@ public abstract class AnimationObject extends GUIObject{
 	
 	@Override
 	public void setLayer(int layer) {
-		//int oldLayer=this.getLayer();
-		//this.setLayer(layer);
-		//gui.confirmLayerUpdate(oldLayer,this);
 		super.setLayer(layer);
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setLayer(layer);
@@ -113,8 +106,6 @@ public abstract class AnimationObject extends GUIObject{
 	public void setLimitX(int x) {
 		x=(x<0?0:x);
 		this.limitX=x;
-		//allowReTexture();
-		//this.gui.showNextFrame();
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setLimitX(x);
 		}
@@ -123,8 +114,6 @@ public abstract class AnimationObject extends GUIObject{
 	public void setLimitY(int y) {
 		y=(y<0?0:y);
 		this.limitY=y;
-		//allowReTexture();
-		//this.gui.showNextFrame();
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setLimitY(y);
 		}
@@ -136,8 +125,6 @@ public abstract class AnimationObject extends GUIObject{
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setMinX(x);
 		}
-		//allowReTexture();
-		//this.gui.showNextFrame();
 	}
 	@Override
 	public void setMinY(int y) {
@@ -146,8 +133,6 @@ public abstract class AnimationObject extends GUIObject{
 		for(Integer key : frames.keySet()) {
 			frames.get(key).setMinY(y);
 		}
-		//allowReTexture();
-		//this.gui.showNextFrame();
 	}
 	
 	@Override

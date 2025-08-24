@@ -4,6 +4,9 @@ import com.iragui.GUI;
 
 public class ScreenObject extends GUIObject{
 
+	/**
+	* Light-weight extender for GUIObject to use all of it's utilities.
+	*/
 	public ScreenObject(String name, int layer, GUI gui, int x, int y, int sizeX, int sizeY, boolean nearestFilter,
 			boolean rgba, boolean preserveTextureIDOverride) {
 		super(name, layer, gui, x, y, sizeX, sizeY, nearestFilter, rgba);

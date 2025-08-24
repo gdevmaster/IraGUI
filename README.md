@@ -6,6 +6,7 @@ Currently in development, so further optimization and documentation needed.
 
 ## ✨ Features
 - ⚡ GPU acceleration via **OpenGL**  
+- 🎵 Sound via **OpenAL**  
 - 🛠️ Built off of [LWJGL](https://www.lwjgl.org)
 ---
 
