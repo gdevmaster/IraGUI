@@ -12,52 +12,90 @@ import org.lwjgl.opengl.GL30;
 import com.iragui.GUI;
 import com.iragui.util.ObjectUtils;
 
+/**
+ * A specialized {@link GUIObject} representing a resizable, movable, and 
+ * optionally decorated sub-window within the GUI.
+ * 
+ * <p>This class manages its own constraints, background rendering, title bar, 
+ * and embedded objects (including other {@code SubWindowObject} instances). 
+ * It provides functionality for scrolling, layering, and parent-child window 
+ * relationships.</p>
+ */
 public class SubWindowObject extends GUIObject{
 	
-	// The new subwindow object will have built in code for focus management
+	 /** Window alignment constant: top-left corner. */
+    public static final int TOP_LEFT = 0;
+    /** Window alignment constant: top-center. */
+    public static final int TOP_CENTER = 1;
+    /** Window alignment constant: top-right corner. */
+    public static final int TOP_RIGHT = 2;
+    /** Window alignment constant: center-left. */
+    public static final int CENTER_LEFT = 3;
+    /** Window alignment constant: absolute center. */
+    public static final int CENTER = 4;
+    /** Window alignment constant: center-right. */
+    public static final int CENTER_RIGHT = 5;
+    /** Window alignment constant: bottom-left corner. */
+    public static final int BOTTOM_LEFT = 6;
+    /** Window alignment constant: bottom-center. */
+    public static final int BOTTOM_CENTER = 7;
+    /** Window alignment constant: bottom-right corner. */
+    public static final int BOTTOM_RIGHT = 8;
+
+    /** Constraint index for the exit button. */
+    private static final int EXIT = 9;
+    /** Constraint index for the maximize/split button. */
+    private static final int MAX_SPLIT = 10;
+    /** Constraint index for the minimize button. */
+    private static final int MIN = 11;
+    /** Constraint index for the title bar text. */
+    private static final int TITLE = 12;
+
+    /** Window movement type: constrained to parent window. */
+    public static final int MOVABLE = 13;
+    /** Window movement type: free (no constraint). */
+    public static final int FREE = 14;
+
+    /** Layer offset factor for embedded objects. */
+    public static final int OBJECT_LAYER_FACTOR = 1;
+    /** Layer offset factor for nested sub-windows. */
+    public static final int SUBWINDOW_LAYER_FACTOR = 2;
 	
-	public static final int TOP_LEFT 		= 0;
-	public static final int TOP_CENTER		= 1;
-	public static final int TOP_RIGHT 		= 2;
-	public static final int CENTER_LEFT 	= 3;
-	public static final int CENTER		 	= 4;
-	public static final int CENTER_RIGHT	= 5;
-	public static final int BOTTOM_LEFT 	= 6;
-	public static final int BOTTOM_CENTER	= 7;
-	public static final int BOTTOM_RIGHT 	= 8;
-	
-	private static final int EXIT 			= 9;
-	private static final int MAX_SPLIT		= 10;
-	private static final int MIN			= 11;
-	private static final int TITLE			= 12;
-	
-	public static final int MOVABLE			= 13;
-	public static final int FREE			= 14;
-	
-	public static final int OBJECT_LAYER_FACTOR = 1;
-	public static final int SUBWINDOW_LAYER_FACTOR = 2;
-	
+    /** Global registry of subwindows by name. */
 	public static HashMap<String,SubWindowObject> windows = new HashMap<>();
 	
+    /** Tracks scroll offsets for scrollable objects within this subwindow. */
 	public HashMap<String,Long> objectConstraintOffset = new HashMap<>();
 	
-	// Integer: layer
+    /** Global subwindows sorted by their rendering layer. */
 	private static TreeMap<Integer,SubWindowObject> windowsByLayer = new TreeMap<>();
 	
-	// Integer: constraint
+	/** Objects contained in this window, grouped by constraint index. */
 	private TreeMap<Integer,ArrayList<GUIObject>> objects;
 	
-	// String: name
+	/** Lookup table of objects contained in this window by name. */
 	private HashMap<String,GUIObject> objectsByName;
 	
+    /** Whether this window is nested inside another subwindow. */
 	protected boolean insideAnotherSubWindow=false;
+	  /** The immediate parent subwindow, if nested. */
 	protected SubWindowObject parentWindow = null;
+	/** The absolute top-level parent subwindow in the hierarchy. */
 	protected SubWindowObject absoluteParentWindow = null;
 	
-	private Color bkgColor,topColor;
+	 /** Background color of the window content area. */
+	private Color bkgColor;
+	
+	/** Border and top-bar color of the window. */
+	private Color topColor;
+	
+	/** Whether this window currently has input focus. */
 	private boolean focused=false;
 	
+	 /** Height of the top bar if decorated, otherwise 0. */
 	private final int topSize;
+	
+	/** Border thickness if decorated, otherwise 0. */
 	private final int borderSize;
 	
 	private ButtonObject exitButton,maxButton,minButton,splitButton;
@@ -65,75 +103,155 @@ public class SubWindowObject extends GUIObject{
 	private final boolean decorated;
 	private boolean resizable;
 	
+	/** Title text object (only exists if decorated). */
 	public TextObject title;
 	
+	 /** The original constraint used when nested inside another subwindow. */
 	protected int originalConstraint = -1;
+	
+	/** Title text color when focused. */
 	private Color titleColor;
+	
+	/** Title text color when unfocused. */
 	private Color unfocusedTitleColor = Color.LIGHT_GRAY;
 	
-	
+    /** Whether the window supports mouse wheel scrolling. */
 	private boolean doesMouseWheelScroll=false;
+	  /** Current scroll offset from mouse wheel events. */
 	private int mouseWheelScrolls = 0;
 	
+	 /** Whether the window supports drag-based scrolling. */
 	private boolean doesDragScroll=false;
+	
+	/** Current X/Y drag scroll offset. */
 	private int dragScrollX = 0, dragScrollY = 0;
 	
 	private boolean useMinScroll = false, useMaxScroll = false;
 	private int minScroll=0,maxScroll=0;
 	
+	/**
+     * Returns the current accumulated mouse wheel scroll offset for this subwindow.
+     *
+     * @return the number of mouse wheel scroll steps
+     */
 	public int getMouseWheelScrollOffset() {
 		return this.mouseWheelScrolls;
 	}
 	
+	 /** Enables mouse wheel scrolling within this subwindow. */
 	public void allowMouseWheelScroll() {
 		doesMouseWheelScroll=true;
 	}
 	
+	 /** Disables mouse wheel scrolling within this subwindow. */
 	public void disallowMouseWheelScroll() {
 		doesMouseWheelScroll=false;
 	}
 	
+	 /** Enables drag-based scrolling (click and drag to scroll). */
 	public void allowDragScroll() {
 		this.doesDragScroll=true;
 	}
+	
+	/** Disables drag-based scrolling. */
 	public void disallowDragScroll() {
 		this.doesDragScroll=false;
 	}
 	
+	/**
+     * Gets the horizontal scroll offset from drag scrolling.
+     *
+     * @return the drag scroll X offset
+     */
 	public int getDragScrollX() {
 		return this.dragScrollX;
 	}
+	
+	  /**
+     * Gets the vertical scroll offset from drag scrolling.
+     *
+     * @return the drag scroll Y offset
+     */
 	public int getDragScrollY() {
 		return this.dragScrollY;
 	}
+	
+	 /**
+     * Sets the horizontal scroll offset used when drag scrolling.
+     *
+     * @param v the new horizontal offset
+     */
 	public void setDragScrollX(int v) {
 		this.dragScrollX = v;
 	}
+	
+	/**
+     * Sets the vertical scroll offset used when drag scrolling.
+     *
+     * @param v the new vertical offset
+     */
 	public void setDragScrollY(int v) {
 		this.dragScrollY = v;
 	}
 	
+	  /**
+     * Enables or disables minimum scroll clamping.
+     *
+     * @param useMinScroll whether to enforce a minimum scroll offset
+     * @param min          the minimum scroll offset to enforce
+     */
 	public void setUseMinScroll(boolean useMinScroll, int min) {
 		this.useMinScroll=useMinScroll;
 		this.minScroll=min;
 	}
+	
+	 /**
+     * Enables or disables maximum scroll clamping.
+     *
+     * @param useMaxScroll whether to enforce a maximum scroll offset
+     * @param max          the maximum scroll offset to enforce
+     */
 	public void setUseMaxScroll(boolean useMaxScroll, int max) {
 		this.useMaxScroll=useMaxScroll;
 		this.maxScroll=max;
 	}
 	
+	/** Mapping of child object names to their relative layer index inside this window. */
 	private HashMap<String,Integer> objectLayersInWindow = new HashMap<>();
 	
-	// TODO: check if this works consistently
+	/**
+     * Assigns a GUI object to a relative layer within this subwindow.
+     *
+     * @param o     the object to re-layer
+     * @param layer the relative layer value
+     */
 	public void setObjectLayerInWindow(GUIObject o, int layer) {
 		o.layer = (this.getLayer()+layer+OBJECT_LAYER_FACTOR);
 		objectLayersInWindow.put(o.name,layer);
 	}
 	
-	// TODO: fix layer issue
-	
+	 /** Title text for the window. */
 	public String titleText;
 
+	 /**
+     * Creates a new decorated or undecorated subwindow object.
+     *
+     * @param name          the subwindow name
+     * @param layer         the rendering layer
+     * @param gui           the parent GUI instance
+     * @param x             initial X position
+     * @param y             initial Y position
+     * @param sizeX         width of the window
+     * @param sizeY         height of the window
+     * @param nearestFilter true to use nearest-neighbor filtering
+     * @param rgba          true if window textures use RGBA
+     * @param bkgColor      background fill color
+     * @param topColor      top bar and border color
+     * @param decorated     whether the window has borders and title bar
+     * @param resizable     whether the window can be resized
+     * @param titleColor    font color for the title text
+     * @param title         initial title string
+     */
 	public SubWindowObject(String name, 
 							int layer, 
 							GUI gui, 
@@ -152,8 +270,7 @@ public class SubWindowObject extends GUIObject{
 		
 		super(name, layer, gui, x, y, sizeX, sizeY, nearestFilter, rgba, false, true, true);
 		
-		// TODO: fix layering, no 2 windows should ever exist on the same layer,
-		//		 or even within 2 layers of each other
+		
 		if(layer%SUBWINDOW_LAYER_FACTOR!=0) {
 			layer++;
 			super.setLayer(layer);
@@ -175,8 +292,6 @@ public class SubWindowObject extends GUIObject{
 		
 		initFullscreenQuad();
 		loadBackgroundShader();
-		
-		//this.drawBackground(false);
 		
 		if(decorated) {
 			
@@ -274,6 +389,7 @@ public class SubWindowObject extends GUIObject{
 		this.forceFocus();
 	}
 	
+	 /** Shader source code used for rendering the subwindow’s background and border. */
 	private String shader = "#type vertex\n"
 			+ "#version 330 core\n"
 			+ "layout(location = 0) in vec2 position;\n"
@@ -357,6 +473,13 @@ public class SubWindowObject extends GUIObject{
 	   shaderProgram = shaderObj.getId();
 	}
 	
+	/**
+     * Renders the subwindow’s background and borders using its shader.
+     *
+     * @param window       the GLFW window handle
+     * @param windowWidth  full framebuffer width
+     * @param windowHeight full framebuffer height
+     */
 	public void render(long window, int windowWidth, int windowHeight) {
 	    GL30.glUseProgram(shaderProgram);
 
@@ -395,8 +518,11 @@ public class SubWindowObject extends GUIObject{
 	    GL30.glUseProgram(0);
 	}
 
-	
-	@Override
+	 /**
+     * Resets the texture ID for this subwindow and all contained child objects,
+     * forcing them to reload textures if necessary.
+     */
+    @Override
 	public void resetTextureID() {
 		super.resetTextureID();
 		
@@ -409,6 +535,12 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+    /**
+     * Finds the highest-layered subwindow within this window, ignoring a specified one.
+     *
+     * @param ignore the subwindow to skip during the search
+     * @return the highest local {@link SubWindowObject}, or {@code null} if none exist
+     */
 	private SubWindowObject getHighestLocalWindow(SubWindowObject ignore) {
 		TreeMap<Integer,SubWindowObject> ws = new TreeMap<>();
 		for(String name : windows.keySet()) {
@@ -423,6 +555,17 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	/**
+     * Adds a {@link GUIObject} to this subwindow with a positional constraint.
+     * <p>
+     * If the object is another {@link SubWindowObject}, this will properly
+     * configure its parent relationships and assign its rendering layer.
+     * Non-window objects are placed above the window layer using {@code OBJECT_LAYER_FACTOR}.
+     * </p>
+     *
+     * @param o          the object to add
+     * @param constraint the constraint constant (e.g. {@code FREE}, {@code TOP_LEFT}, etc.)
+     */
 	public void add(GUIObject o, int constraint) {
 		
 		gui.println("[SUBWINDOWOBJECT] Added "+o.name+" to "+this.name);
@@ -450,8 +593,7 @@ public class SubWindowObject extends GUIObject{
 			int requestedLayer = this.getLayer()+SUBWINDOW_LAYER_FACTOR;
 			
 			if(windowsByLayer.containsKey(requestedLayer)) {				
-				// TODO: make it so this window finds a layer
-				//		 +2 more than the (highest window's highest child) with the same direct parent
+				
 				
 				// gets the highest localized window
 				SubWindowObject highestLocalWindow = this.getHighestLocalWindow(this);
@@ -479,6 +621,11 @@ public class SubWindowObject extends GUIObject{
 		o.setVisible();
 	}
 	
+	  /**
+     * Sets the maximum X bound for this window based on the parent window's limits.
+     *
+     * @param sWO the parent subwindow object
+     */
 	private void limitX(SubWindowObject sWO) {
 		
 		int x = sWO.getLimitX()<sWO.getWinLimitX()?sWO.getLimitX():sWO.getWinLimitX();
@@ -490,6 +637,11 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	/**
+     * Sets the maximum Y bound for this window based on the parent window's limits.
+     *
+     * @param sWO the parent subwindow object
+     */
 	private void limitY(SubWindowObject sWO) {
 		
 		int y = sWO.getLimitY()<sWO.getWinLimitY()?sWO.getLimitY():sWO.getWinLimitY();
@@ -502,6 +654,11 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	  /**
+     * Sets the minimum X bound for this window based on the parent window's limits.
+     *
+     * @param sWO the parent subwindow object
+     */
 	private void minX(SubWindowObject sWO) {
 		
 		int x = sWO.getMinX()>sWO.getWinMinX()?sWO.getMinX():sWO.getWinMinX();
@@ -512,6 +669,12 @@ public class SubWindowObject extends GUIObject{
 			objectsByName.get(name).setMinX(x);
 		}
 	}
+	
+	 /**
+     * Sets the minimum Y bound for this window based on the parent window's limits.
+     *
+     * @param sWO the parent subwindow object
+     */
 	private void minY(SubWindowObject sWO) {
 		
 		int y = sWO.getMinY()>sWO.getWinMinY()?sWO.getMinY():sWO.getWinMinY();
@@ -523,6 +686,11 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	  /**
+     * Applies window bounds (min/max X/Y) to an object inside this subwindow.
+     *
+     * @param o the object to constrain
+     */
 	private void setObjectWindowLimit(GUIObject o) {
 		
 		if(o.getClass()==SubWindowObject.class) {
@@ -555,17 +723,59 @@ public class SubWindowObject extends GUIObject{
 	}
 	
 	private int mouseWheelScrollMultiplier = 32;
+	
+	/**
+     * Returns the current multiplier used for mouse wheel scroll calculations.
+     *
+     * @return the scroll multiplier
+     */
 	public int getMouseWheelScrollMultiplier() {
 		return this.mouseWheelScrollMultiplier;
 	}
+	
+	 /**
+     * Sets the multiplier applied to mouse wheel scroll offsets.
+     *
+     * @param i the new scroll multiplier
+     */
 	public void setMouseScrollMultiplier(int i) {
 		this.mouseWheelScrollMultiplier=i;
 	}
 	
+	 /**
+     * Marks a {@link GUIObject} as scrollable within this subwindow.
+     *
+     * @param o the object to make scrollable
+     */
 	public void makeObjectScrollable(GUIObject o) {
 		this.objectConstraintOffset.put(o.name,ObjectUtils.getLongFromInts(0,0));
 	}
 	
+	/**
+     * Positions and/or clamps a child {@link GUIObject} within this subwindow according to a constraint.
+     * <p>
+     * This method:
+     * <ul>
+     *   <li>Applies optional scroll offsets (mouse wheel and drag scroll) if the object was made scrollable.</li>
+     *   <li>Clamps the object to the subwindow’s interior when {@code constraint != FREE}.</li>
+     *   <li>Places the object based on the specified constraint anchor (e.g., top-left, center, etc.).</li>
+     *   <li>Updates the child’s effective window limits via {@link #setObjectWindowLimit(GUIObject)}.</li>
+     * </ul>
+     * Supported constraints:
+     * <ul>
+     *   <li>{@link #FREE} – freely positionable; only limits are updated.</li>
+     *   <li>{@link #MOVABLE} – same as FREE; object is intended to be user-movable.</li>
+     *   <li>Anchors: {@link #TOP_LEFT} (default), {@link #TOP_CENTER}, {@link #TOP_RIGHT},
+     *       {@link #CENTER_LEFT}, {@link #CENTER}, {@link #CENTER_RIGHT},
+     *       {@link #BOTTOM_LEFT}, {@link #BOTTOM_CENTER}, {@link #BOTTOM_RIGHT}.</li>
+     *   <li>Titlebar/control slots: {@link #TITLE}, {@link #MIN}, {@link #MAX_SPLIT}, {@link #EXIT}.</li>
+     * </ul>
+     * For {@link #TITLE}, the method also elides the title text with {@code "..."} if it would overlap the
+     * minimize button.
+     *
+     * @param o          the child object to constrain
+     * @param constraint one of the constraint constants defined on {@code SubWindowObject}
+     */
 	private void constrainObject(GUIObject o, int constraint) {
 		
 		int offsetX = 0;
@@ -692,7 +902,6 @@ public class SubWindowObject extends GUIObject{
 			
 			if(minButton!=null) {
 				if(!minButton.isDestroyed()) {
-					// TODO: fix title mess
 					if(o.getClass()==TextObject.class) {
 						TextObject tO = (TextObject) o;
 					
@@ -709,7 +918,17 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
-	
+	/**
+     * Changes the constraint bucket for an existing child and reapplies positioning.
+     * <p>
+     * This removes {@code o} from its current internal list and reassigns it to the list
+     * for {@code constraint}, then immediately calls {@link #constrainObject(GUIObject, int)}
+     * to update its position and limits.
+     * </p>
+     *
+     * @param o          the child object whose constraint should change
+     * @param constraint the new constraint (see constants like {@link #FREE}, {@link #CENTER}, etc.)
+     */
 	public void changeConstraint(GUIObject o, int constraint) {
 		o.constraint=constraint;
 		
@@ -740,6 +959,16 @@ public class SubWindowObject extends GUIObject{
 		constrainObject(o,constraint);
 	} 
 	
+	/**
+     * Removes a child object by name from this subwindow.
+     * <p>
+     * This method deletes the reference from internal collections. If the removed object is itself a
+     * {@link SubWindowObject}, its parent/containment flags are reset. This does <em>not</em> call
+     * {@link GUIObject#destroyObject()} on the removed object; it only detaches it from this container.
+     * </p>
+     *
+     * @param name the name of the child object to remove
+     */
 	public void remove(String name) {
 		
 		if(windows.containsKey(name)) {
@@ -767,6 +996,19 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	 /**
+     * Destroys this subwindow and all of its children.
+     * <p>
+     * Steps performed:
+     * <ol>
+     *   <li>Unregisters this window from the global {@code windows} map.</li>
+     *   <li>Rebuilds the {@code windowsByLayer} index.</li>
+     *   <li>Resets the cursor on the owning window.</li>
+     *   <li>Calls {@link GUIObject#destroyObject()} on all child objects and clears internal collections.</li>
+     *   <li>Invokes {@code super.destroyObject()} to release this object’s own resources.</li>
+     * </ol>
+     * </p>
+     */
 	@Override
 	public void destroyObject() {
 		
@@ -779,24 +1021,6 @@ public class SubWindowObject extends GUIObject{
 		}
 		
 		gui.getWindow().resetCursor();
-		/*
-		if(decorated) {
-			exitButton.hide();
-			exitButton.destroyObject();
-		
-			if(resizable) {
-				if(maxButton!=null) {
-					maxButton.hide();
-					maxButton.destroyObject();
-				} else {
-					splitButton.hide();
-					splitButton.destroyObject();
-				}
-			}
-		
-			minButton.hide();
-			minButton.destroyObject();
-		}*/
 		
 		for(Integer c : objects.keySet()) {
 			if(objects.get(c).size()>0) {
@@ -813,6 +1037,22 @@ public class SubWindowObject extends GUIObject{
 		super.destroyObject();
 	}
 
+	 /**
+     * Per-frame update for this subwindow.
+     * <p>
+     * Behavior:
+     * <ul>
+     *   <li>No-op when {@code showFrame == false}.</li>
+     *   <li>Updates title color based on focus state.</li>
+     *   <li>Enables/disables window control buttons depending on focus, dragging, and resizing state.</li>
+     *   <li>If dragging, repositions the window within the screen bounds.</li>
+     *   <li>Re-applies constraints for all child objects each frame.</li>
+     *   <li>Handles clicks on close/minimize (destroys the window).</li>
+     *   <li>Handles maximize/split toggle: maximizes to parent or full window, and restores on split.</li>
+     * </ul>
+     *
+     * @param showFrame whether this frame should be processed and drawn
+     */
 	@Override
 	public void update(boolean showFrame) {
 		
@@ -990,8 +1230,23 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
-	private int splitSizeX,splitSizeY,splitX,splitY;
+	/**
+     * Horizontal and vertical split size values for window partitioning.
+     */
+	private int splitSizeX,splitSizeY;
 	
+	 /**
+     * Current horizontal and vertical split positions.
+     */
+	private int splitX,splitY;
+	
+	 /**
+     * Resizes this window object, enforcing minimum (225x225) and maximum
+     * bounds based on the current window size.
+     *
+     * @param x new width in pixels
+     * @param y new height in pixels
+     */
 	public void resize(int x, int y) {
 		
 		if(x<225) {
@@ -1013,10 +1268,15 @@ public class SubWindowObject extends GUIObject{
 		
 		this.sizeX=x;
 		this.sizeY=y;
-		//this.drawBackground(true);
 	}
 	
-	// WORKS AS INTENDED
+
+    /**
+     * Sets the rendering layer of this window and updates all contained objects
+     * to maintain correct z-ordering.
+     *
+     * @param layer new layer index
+     */
 	@Override
 	public void setLayer(int layer) {
 		super.setLayer(layer);
@@ -1027,8 +1287,6 @@ public class SubWindowObject extends GUIObject{
 				sO.layerThisWindowInParent();
 			} else {
 				
-				// TODO: make sure these objects get higher if layered here
-				
 				if(objectLayersInWindow.containsKey(name)) {
 					objectsByName.get(name).setLayer(layer+OBJECT_LAYER_FACTOR+objectLayersInWindow.get(name));
 				} else {
@@ -1038,6 +1296,11 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	  /**
+     * Gets the highest layer value used by this window and its children.
+     *
+     * @return highest layer index
+     */
 	public int getHighestLayer() {
 		int highestLayer = this.layer;
 		for(String name : objectsByName.keySet()) {
@@ -1053,6 +1316,13 @@ public class SubWindowObject extends GUIObject{
 		return highestLayer;
 	}
 	
+	 /**
+     * Gets the highest layer value used by this window and its children,
+     * excluding a specific object.
+     *
+     * @param ignore object to ignore
+     * @return highest layer index without {@code ignore}
+     */
 	public int getHighestLayer(GUIObject ignore) {
 		int highestLayer = this.layer;
 		for(String name : objectsByName.keySet()) {
@@ -1069,6 +1339,12 @@ public class SubWindowObject extends GUIObject{
 		return highestLayer;
 	}
 	
+	 /**
+     * Forces this window to the top of the rendering stack among other windows
+     * and sets focus.
+     *
+     * @param otherWindows map of layers to subwindows
+     */
 	private void layerThisWindow(TreeMap<Integer,ArrayList<SubWindowObject>> otherWindows) {
 		for(String name : windows.keySet()) {
 			if(windows.get(name)!=this) {
@@ -1089,6 +1365,10 @@ public class SubWindowObject extends GUIObject{
 		this.focus();
 	}
 	
+	 /**
+     * Adjusts this subwindow's layer within its parent window to maintain
+     * correct z-ordering.
+     */
 	private void layerThisWindowInParent() {
 		
 		SubWindowObject highestLocalWindow = this.parentWindow.getHighestLocalWindow(this);
@@ -1113,6 +1393,10 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	 /**
+     * Brings this window to focus, forcing it to the top of the rendering
+     * hierarchy.
+     */
 	public void forceFocus() {
 		TreeMap<Integer,ArrayList<GUIObject>> otherObjects = gui.getObjectsByLayer();
 		TreeMap<Integer,ArrayList<SubWindowObject>> otherWindows = new TreeMap<>();
@@ -1138,6 +1422,13 @@ public class SubWindowObject extends GUIObject{
 		layerThisWindow(otherWindows);
 	}
 	
+	  /**
+     * Requests focus for this window if the given mouse coordinates are within
+     * bounds and not obstructed by another window.
+     *
+     * @param mX mouse X coordinate
+     * @param mY mouse Y coordinate
+     */
 	private void requestFocus(double mX, double mY) {
 		
 		if(this.isFocused()) {
@@ -1261,6 +1552,12 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 
+	/**
+     * Sends a key input event to this window.
+     *
+     * @param key    key code
+     * @param action key action (press/release)
+     */
 	@Override
 	public void sendKey(int key, int action) {}
 	
@@ -1288,6 +1585,14 @@ public class SubWindowObject extends GUIObject{
 	
 	private boolean mouseOnLeft=false,mouseOnRight=false,mouseOnDown=false,mouseOnUp=false;
 	
+	 /**
+     * Checks whether the mouse is within resizing bounds and updates cursor
+     * state accordingly.
+     *
+     * @param xPos mouse X coordinate
+     * @param yPos mouse Y coordinate
+     * @return {@code true} if resizing or cursor is on an edge, otherwise {@code false}
+     */
 	private boolean checkResizing(double xPos,double yPos) {
 		
 		if(!decorated || !resizable || dragging) {
@@ -1464,6 +1769,13 @@ public class SubWindowObject extends GUIObject{
 	
 	private boolean avoidReConstrainX=false,avoidReConstrainY=false;
 	
+	
+	/**
+     * Safely sets this object's X position, constraining it to window bounds
+     * and applying parent constraints if necessary.
+     *
+     * @param x new X position
+     */
 	@Override
 	public void setX(int x) {
 		if(x<0) {
@@ -1482,6 +1794,12 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	/**
+     * Safely sets this object's Y position, constraining it to window bounds
+     * and applying parent constraints if necessary.
+     *
+     * @param y new Y position
+     */
 	@Override
 	public void setY(int y) {
 		if(y<0) {
@@ -1500,6 +1818,9 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	/**
+     * Resets all resize-related state and cursor overrides.
+     */
 	private void resetAllResizeVariables() {
 		forceLeftResize=false;
 		forceRightResize=false;
@@ -1518,6 +1839,13 @@ public class SubWindowObject extends GUIObject{
 		if(!anyWindowsInResizeRange()) {gui.getWindow().resetCursor();}
 	}
 	
+	 /**
+     * Checks whether the given window is free to interact, i.e. no other window
+     * is currently dragging or resizing.
+     *
+     * @param o subwindow to test
+     * @return {@code true} if free to interact, otherwise {@code false}
+     */
 	public static boolean freeToInteract(SubWindowObject o) {
 		for(String name : windows.keySet()) {
 			if(windows.get(name).name!=o.name) {
@@ -1529,6 +1857,13 @@ public class SubWindowObject extends GUIObject{
 		return true;
 	}
 	
+	 /**
+     * Checks whether the given window is free to interact, i.e. no other window
+     * is currently dragging or resizing.
+     *
+     * @param o subwindow to test
+     * @return {@code true} if free to interact, otherwise {@code false}
+     */
 	public static boolean anyWindowsInResizeRange() {
 		for(String name : windows.keySet()) {
 			if(windows.get(name).resizing||
@@ -1542,6 +1877,10 @@ public class SubWindowObject extends GUIObject{
 		return false;
 	}
 
+	/**
+     * Sends the current mouse position to this window, updating resize and
+     * drag state if applicable.
+     */
 	@Override
 	public void sendMousePos(long window, double xPos, double yPos) {
 		
@@ -1613,6 +1952,10 @@ public class SubWindowObject extends GUIObject{
 	private int startDragY = 0;
 	private boolean initDrag = false;
 
+	 /**
+     * Sends a mouse button event to this window, handling dragging, resizing,
+     * and scroll-drag interactions.
+     */
 	@Override
 	public void sendMouseButton(long window, int button, int action, int mods) {
 		
@@ -1662,10 +2005,19 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 	
+	/**
+     * Returns whether the current cursor is the "normal" system cursor.
+     *
+     * @return {@code true} if cursor is normal, otherwise {@code false}
+     */
 	public boolean mouseIsNormal() {
 		return gui.getWindow().getCursor()==null;
 	}
 
+	 /**
+     * Sends a mouse scroll event to this window, updating scroll offsets if
+     * enabled.
+     */
 	@Override
 	public void sendMouseScroll(long window, double xOffset, double yOffset) {
 		if(!this.isFocused()) {
@@ -1687,22 +2039,49 @@ public class SubWindowObject extends GUIObject{
 		}
 	}
 
+	 /**
+     * Returns the height of this window's top bar (title bar region).
+     *
+     * @return top bar height in pixels
+     */
 	public int getTopSize() {
 		return this.topSize;
 	}
 
+	 /**
+     * Returns the height of this window's top bar (title bar region).
+     *
+     * @return top bar height in pixels
+     */
 	public HashMap<String,GUIObject> getObjectsByName() {
 		return this.objectsByName;
 	}
 	
+	 /**
+     * Adds a constraint offset for the given object within this window.
+     *
+     * @param o       target GUI object
+     * @param offsetX horizontal offset
+     * @param offsetY vertical offset
+     */
 	public void addObjectConstraintOffset(GUIObject o, int offsetX, int offsetY) {
 		this.objectConstraintOffset.put(o.name,ObjectUtils.getLongFromInts(offsetX, offsetY));
 	}
 
+	/**
+     * Returns whether this window is currently being dragged.
+     *
+     * @return {@code true} if dragging
+     */
 	public boolean isDragging() {
 		return this.dragging;
 	}
 
+	/**
+     * Returns whether this window is currently being dragged.
+     *
+     * @return {@code true} if dragging
+     */
 	public boolean isResizing() {
 		return this.resizing;
 	}

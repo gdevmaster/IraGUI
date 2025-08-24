@@ -1,8 +1,7 @@
 # IraGUI
 
 A cross-platform **Java GUI API** built with **Eclipse** and **Maven**.  
-Utilizes 
-Originally Built for a **Game Engine** called [IraEngine](https://github.com/gdevmaster/IraEngine).
+Currently in development, so further optimization and documentation needed.  
 ---
 
 ## ✨ Features
