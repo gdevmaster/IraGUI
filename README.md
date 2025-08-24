@@ -192,3 +192,11 @@ public class GUIApp implements Runnable {
 }
 ```
 </details>
+
+## 📖 Documentation
+
+<p align="center">
+  <a href="https://gdevmaster.github.io/IraGUI/apidocs/">
+    <img src="https://img.shields.io/badge/Javadocs-Online-blue?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Javadocs">
+  </a>
+</p>
