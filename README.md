@@ -26,7 +26,7 @@ mvn clean install
 To create a GUI window and start rendering GUI objects:
 
 <details>
-<summary>Click to expand</summary>
+<summary>Show Code</summary>
 
 ```java
 import com.iraengine.gui.GUI;
@@ -87,13 +87,13 @@ public class GUIApp implements Runnable {
 		}
 	}
 }
-</details>
 ```
+</details>
 
 Recommended setup for games:
 
 <details>
-<summary>Click to expand</summary>
+<summary>Show Code</summary>
 
 ```java
 import com.iraengine.gui.GUI;
@@ -190,8 +190,8 @@ public class GUIApp implements Runnable {
 		}
 	}
 }
-</details>
 ```
+</details>
    
    
    
