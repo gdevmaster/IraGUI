@@ -9,6 +9,14 @@ import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+/**
+ * Represents an OpenGL shader program composed of a vertex shader and a fragment shader.
+ * <p>
+ * This class is responsible for loading shader source code (from a file or raw string),
+ * compiling shaders, linking them into a shader program, and providing utility methods
+ * to bind the shader and upload uniform variables.
+ * </p>
+ */
 public class Shader {
 
     private int shaderProgramID;
@@ -18,7 +26,14 @@ public class Shader {
     private String fragmentSource;
     private String filePath;
 
-    // Constructor: Load shader from combined source string
+    /**
+     * Represents an OpenGL shader program composed of a vertex shader and a fragment shader.
+     * <p>
+     * This class is responsible for loading shader source code (from a file or raw string),
+     * compiling shaders, linking them into a shader program, and providing utility methods
+     * to bind the shader and upload uniform variables.
+     * </p>
+     */
     public Shader(String source, boolean isString) {
         try {
             parseShaderSource(source);
@@ -28,7 +43,15 @@ public class Shader {
         }
     }
 
-    // Constructor: Load shader from file
+    /**
+     * Creates a shader program by loading shader source code from a file.
+     * <p>
+     * The file must contain both vertex and fragment shader code separated
+     * by lines starting with {@code #type vertex} or {@code #type fragment}.
+     * </p>
+     *
+     * @param filePath The path to the shader file.
+     */
     public Shader(String filePath) {
         this.filePath = filePath;
 
@@ -41,7 +64,7 @@ public class Shader {
         }
     }
 
-    // Cross-platform shader source parsing
+   
     private void parseShaderSource(String source) throws IOException {
         String[] lines = source.split("\\R"); // Split on any line separator
         StringBuilder vertexBuilder = new StringBuilder();
@@ -71,7 +94,14 @@ public class Shader {
         fragmentSource = fragmentBuilder.toString();
     }
 
-    // Compile shaders and link program
+    /**
+     * Compiles the vertex and fragment shaders and links them into a shader program.
+     * <p>
+     * This must be called before using the shader.
+     * </p>
+     *
+     * @throws AssertionError if shader compilation or linking fails.
+     */
     public void compile() {
         int vertexID = GL30.glCreateShader(GL30.GL_VERTEX_SHADER);
         GL30.glShaderSource(vertexID, vertexSource);
@@ -114,6 +144,12 @@ public class Shader {
         GL30.glDeleteShader(fragmentID);
     }
 
+    /**
+     * Activates (binds) this shader program for use.
+     * <p>
+     * If the shader is already in use, this call does nothing.
+     * </p>
+     */
     public void use() {
         if (!beingUsed) {
             GL30.glUseProgram(shaderProgramID);
@@ -121,12 +157,20 @@ public class Shader {
         }
     }
 
+    /**
+     * Deactivates (unbinds) any currently active shader program.
+     */
     public void detach() {
         GL30.glUseProgram(0);
         beingUsed = false;
     }
 
-    // Uniform upload methods
+    /**
+     * Uploads a 3x3 matrix to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param mat3    the {@link Matrix3f} to upload.
+     */
     public void uploadMat3f(String varName, Matrix3f mat3) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
@@ -135,6 +179,12 @@ public class Shader {
         GL30.glUniformMatrix3fv(varLocation, false, matBuffer);
     }
 
+    /**
+     * Uploads a 4x4 matrix to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param mat4    the {@link Matrix4f} to upload.
+     */
     public void uploadMat4f(String varName, Matrix4f mat4) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
@@ -143,48 +193,95 @@ public class Shader {
         GL30.glUniformMatrix4fv(varLocation, false, matBuffer);
     }
 
+    /**
+     * Uploads a 2D vector to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param vec     the {@link Vector2f} to upload.
+     */
     public void uploadVec2f(String varName, Vector2f vec) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform2f(varLocation, vec.x, vec.y);
     }
 
+    /**
+     * Uploads a 3D vector to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param vec     the {@link Vector3f} to upload.
+     */
     public void uploadVec3f(String varName, Vector3f vec) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform3f(varLocation, vec.x, vec.y, vec.z);
     }
 
+    /**
+     * Uploads a 4D vector to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param vec     the {@link Vector4f} to upload.
+     */
     public void uploadVec4f(String varName, Vector4f vec) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform4f(varLocation, vec.x, vec.y, vec.z, vec.w);
     }
 
+    /**
+     * Uploads a float value to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param val     the float value to upload.
+     */
     public void uploadFloat(String varName, float val) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform1f(varLocation, val);
     }
 
+    /**
+     * Uploads an integer value to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param val     the integer value to upload.
+     */
     public void uploadInt(String varName, int val) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform1i(varLocation, val);
     }
 
+    /**
+     * Uploads a texture slot index to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param slot    the texture slot (e.g., 0 for GL_TEXTURE0).
+     */
     public void uploadTexture(String varName, int slot) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform1i(varLocation, slot);
     }
 
+    /**
+     * Uploads an array of integers to a shader uniform.
+     *
+     * @param varName the name of the uniform variable in the shader.
+     * @param array   the array of integers to upload.
+     */
     public void uploadIntArray(String varName, int[] array) {
         int varLocation = GL30.glGetUniformLocation(shaderProgramID, varName);
         use();
         GL30.glUniform1iv(varLocation, array);
     }
 
+    /**
+     * Gets the OpenGL ID of this shader program.
+     *
+     * @return the shader program ID.
+     */
     public int getId() {
         return shaderProgramID;
     }

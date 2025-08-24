@@ -40,8 +40,4 @@ public class FileSystem {
 			return null;
 		}
 	}
-
-	//public static SerializableImage getSerializableImage(String string) {
-	//	return new SerializableImage(getImage(string));
-	//}
 }

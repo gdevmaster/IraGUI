@@ -70,6 +70,4 @@ public class ObjectUtils {
 	public static ByteBuffer createByteBuffer(int length) {
 		return BufferUtils.createByteBuffer(length);
 	}
-	
-
 }

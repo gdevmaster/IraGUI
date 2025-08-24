@@ -46,43 +46,126 @@ import org.lwjgl.glfw.GLFW;
 import com.iragui.GUI;
 import com.iragui.util.ObjectUtils;
 
+/**
+ * A writable text box GUI component that supports user input, cursor movement,
+ * multi-line editing, and different editing modes.
+ * <p>
+ * Extends {@link TextBoxObject} by adding keyboard and mouse interaction,
+ * cursor rendering, and text-editing logic (insert, backspace, newline, etc.).
+ * </p>
+ *
+ * <h2>Supported Modes</h2>
+ * <ul>
+ *   <li>{@link #CONSOLE_MODE} - Appends text at the end, typical console input behavior.</li>
+ *   <li>{@link #FREE_MODE} - Allows free multi-line editing.</li>
+ *   <li>{@link #TEXT_EDITOR_MODE} - Full text editor behavior with insert, newline, and merge logic.</li>
+ * </ul>
+ *
+ * <h2>Line Limit</h2>
+ * You may set a line limit using {@link #setLineLimit(int)}.  
+ * If set to {@link #NO_LINE_LIMIT}, unlimited lines are allowed.
+ *
+ * <h2>Cursor</h2>
+ * A {@link TextObject} cursor is maintained internally and updated during editing.
+ *
+ * <h2>Usage</h2>
+ * Example:
+ * <pre>
+ * WritableTextBoxObject textBox = new WritableTextBoxObject(
+ *     "chatBox", 1, gui,
+ *     50, 50, 400, 300,
+ *     false, true, 4,
+ *     mySubWindow, myFont, Color.WHITE, new Color(0,0,0,0), true
+ * );
+ * textBox.setMode(WritableTextBoxObject.TEXT_EDITOR_MODE);
+ * </pre>
+ */
 public class WritableTextBoxObject extends TextBoxObject{
 	
+	 /** Whether this text box is currently focused for input. */
 	public boolean focused = false;
+	
+	 /** Optional parent sub-window object that controls focus behavior. */
 	private SubWindowObject parent = null;
 	
 	private int letterIndex = 0;
 	private int currentLine = 0;
 	
+	/** Cursor object rendered as a text glyph (e.g., "|"). */
 	public TextObject cursor;
 	private Font font;
 	private Color textColor,backgroundColor;
 	private boolean antiAliasing;
 	
+	/** Console mode: appends text at the end. */
 	public static int CONSOLE_MODE = 0;
+	
+	/** Free mode: allows arbitrary line navigation and editing. */
 	public static int FREE_MODE = 1;
+	
+	  /** Text editor mode: supports full editing logic (newlines, merging lines, etc.). */
 	public static int TEXT_EDITOR_MODE = 2;
+	
+	  /** Text editor mode: supports full editing logic (newlines, merging lines, etc.). */
 	public static int NO_LINE_LIMIT = -1;
 	
+	/** The current editing mode (default: {@link #CONSOLE_MODE}). */
 	private int mode = CONSOLE_MODE;
 	
+	/** Maximum number of lines allowed (or {@link #NO_LINE_LIMIT}). */
 	private int lineLimit = NO_LINE_LIMIT;
 	
+	 /**
+     * Sets the maximum line count for this text box.
+     *
+     * @param l line limit, or {@link #NO_LINE_LIMIT} for unlimited lines
+     */
 	public void setLineLimit(int l) {
 		this.lineLimit=l;
 	}
+	
+	/**
+     * @return the maximum line count, or {@link #NO_LINE_LIMIT} if unlimited
+     */
 	public int getLineLimit() {
 		return this.lineLimit;
 	}
 	
+	 /**
+     * Sets the editing mode for this text box.
+     *
+     * @param mode one of {@link #CONSOLE_MODE}, {@link #FREE_MODE}, {@link #TEXT_EDITOR_MODE}
+     */
 	public void setMode(int mode) {
 		this.mode=mode;
 	}
 	
+	/**
+     * @return the current editing mode
+     */
 	public int getMode() {
 		return this.mode;
 	}
 
+	/**
+     * Creates a writable text box object.
+     *
+     * @param name           object name
+     * @param layer          rendering layer
+     * @param gui            GUI manager
+     * @param x              x position
+     * @param y              y position
+     * @param sizeX          width
+     * @param sizeY          height
+     * @param nearestFilter  true to use nearest-neighbor scaling
+     * @param rgba           whether RGBA is enabled
+     * @param lineSpacing    line spacing in pixels
+     * @param window         parent sub-window object (optional, can be null)
+     * @param font           font for rendering text
+     * @param textColor      foreground text color
+     * @param backgroundColor background color
+     * @param antiAliasing   whether to enable anti-aliasing
+     */
 	public WritableTextBoxObject(String name, 
 			int layer,
 			GUI gui, 
@@ -118,6 +201,11 @@ public class WritableTextBoxObject extends TextBoxObject{
 		this.focused=true;
 	}
 	
+	/**
+     * Appends a new line of text to the text box.
+     *
+     * @param text line text to append
+     */
 	public void appendLine(String text) {
 
 		int line = lines.size();
@@ -141,6 +229,12 @@ public class WritableTextBoxObject extends TextBoxObject{
 		}
 	}
 	
+	/**
+     * Handles a keyboard key event.
+     *
+     * @param key    GLFW key code
+     * @param action GLFW action (press, release, repeat)
+     */
 	@Override
 	public void sendKey(int key, int action) {
 		if(parent!=null) {
@@ -155,6 +249,7 @@ public class WritableTextBoxObject extends TextBoxObject{
 	}
 	
 	private long lastPos = 0;
+	
 	
 	@Override
 	public void destroyObject() {
@@ -211,6 +306,11 @@ public class WritableTextBoxObject extends TextBoxObject{
 		}
 	}
 	
+	/**
+     * Updates the text box state (cursor position, pending writes, etc.).
+     *
+     * @param showFrame true if the GUI should be refreshed
+     */
 	@Override
 	public void update(boolean showFrame) {
 		
@@ -881,6 +981,9 @@ public class WritableTextBoxObject extends TextBoxObject{
 		super.setY(y);
 	}
 
+	  /**
+     * @return the lines in this text box
+     */
 	public TreeMap<Integer, TextObject> getLines() {
 		return this.lines;
 	}

@@ -49,9 +49,4 @@ public class KeyListener {
 	public boolean[] getKeys() {
 		return keys;
 	}
-/*
-	public void setKeys(boolean[] keys) {
-		this.keys = keys;
-	}
-	*/
 }
