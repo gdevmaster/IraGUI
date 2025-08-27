@@ -1822,6 +1822,9 @@ public class SubWindowObject extends GUIObject{
      * Resets all resize-related state and cursor overrides.
      */
 	private void resetAllResizeVariables() {
+		if(justResetResizeVariables) {
+			return;
+		}
 		forceLeftResize=false;
 		forceRightResize=false;
 		forceDownResize=false;
@@ -1837,6 +1840,7 @@ public class SubWindowObject extends GUIObject{
 		lastMouseY=OUT_OF_BOUNDS;
 		
 		if(!anyWindowsInResizeRange()) {gui.getWindow().resetCursor();}
+		justResetResizeVariables=true;
 	}
 	
 	 /**
@@ -1876,6 +1880,8 @@ public class SubWindowObject extends GUIObject{
 		}
 		return false;
 	}
+	
+	private boolean justResetResizeVariables=false;
 
 	/**
      * Sends the current mouse position to this window, updating resize and
@@ -1892,7 +1898,6 @@ public class SubWindowObject extends GUIObject{
 		if(!this.isFocused()) {
 			return;
 		} else {
-			
 			if(checkResizing(xPos,gui.getWindow().getSizeY()-yPos)) {
 				dragging=false;
 				return;
@@ -1903,6 +1908,8 @@ public class SubWindowObject extends GUIObject{
 			resetAllResizeVariables();
 			return;
 		}
+		
+		justResetResizeVariables=false;
 		
 		yPos=gui.getWindow().getSizeY()-yPos;
 		
