@@ -1851,12 +1851,14 @@ public class SubWindowObject extends GUIObject{
      * @return {@code true} if free to interact, otherwise {@code false}
      */
 	public static boolean freeToInteract(SubWindowObject o) {
-		for(String name : windows.keySet()) {
-			if(windows.get(name).name!=o.name) {
-				if(windows.get(name).dragging||windows.get(name).resizing) {
+		for(Integer layer : windowsByLayer.reversed().keySet()) {
+			
+			if(layer!=o.layer) {
+				if(windowsByLayer.get(layer).dragging||windowsByLayer.get(layer).resizing) {
 					return false;
 				}
 			}
+			
 		}
 		return true;
 	}
