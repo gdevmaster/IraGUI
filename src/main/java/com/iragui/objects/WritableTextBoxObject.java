@@ -337,7 +337,17 @@ public class WritableTextBoxObject extends TextBoxObject{
 			writeCurrent();
 		}
 		
-		cursor.setY(lines.get(currentLine).getY());
+		if(lines.containsKey(currentLine)) {
+			cursor.setY(lines.get(currentLine).getY());
+		} else {
+			if(lines.isEmpty()) {
+				appendLine("");
+				cursor.setY(lines.get(currentLine).getY());
+			} else {
+				cursor.setY(lines.lastEntry().getValue().getY());
+				currentLine = lines.lastEntry().getKey();
+			}
+		}
 		
 		int px = parent.getX();
 		int py = parent.getY();
@@ -371,6 +381,7 @@ public class WritableTextBoxObject extends TextBoxObject{
 			lastPos=pos;
 			gui.showNextFrame();
 		}
+		
 	}
 	
 	private boolean shifting=false,controling=false;
